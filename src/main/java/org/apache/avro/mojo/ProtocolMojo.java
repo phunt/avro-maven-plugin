@@ -104,6 +104,10 @@ public class ProtocolMojo extends AbstractMojo {
         project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
     }
 
+    // what follows is mostly from Avro's ProtocolTask
+    // much of this can go away in 1.2.0 of Avro as some refactoring will
+    // allow reuse (currently tied to AntTask and cannot be reused)
+
     protected SpecificCompiler doCompile(File file) throws IOException {
         return SpecificCompiler.compileProtocol(file);
     }
