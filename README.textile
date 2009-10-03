@@ -1,10 +1,21 @@
 h1. Maven 2 Plugin for processing Avro files
 
-"http://hadoop.apache.org/avro/":http://hadoop.apache.org/avro/
+*Author: "Patrick Hunt":http://people.apache.org/~phunt/* (follow me on "twitter":http://twitter.com/phunt)
 
 h2. Summary
 
-This is a Maven 2 plugin for processing Avro protocol and schema files. Currently only protocol files are supported.
+"This is a Maven 2 plugin":http://github.com/phunt/avro-maven-plugin for processing "Avro protocol and schema files":http://hadoop.apache.org/avro/. Currently only protocol files are supported.
+
+h3. What's Apache Avro?
+
+From the "official site":http://hadoop.apache.org/avro/: "Avro is a data serialization system"
+
+Avro provides:
+ * Rich data structures.
+ * A compact, fast, binary data format.
+ * A container file, to store persistent data.
+ * Remote procedure call (RPC).
+ * Simple integration with dynamic languages. Code generation is not required to read or write data files nor to use or implement RPC protocols. Code generation as an optional optimization, only worth implementing for statically typed languages. 
 
 h2. Usage
 
