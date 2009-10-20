@@ -19,9 +19,9 @@ Avro provides:
 
 h2. Usage
 
-Type "mvn package", this will output an avro-maven-plugin jar file in the target directory. Copy this jar into your Avro project directory.
+Type "mvn install" to install the plugin into your local maven repository.
 
-You'll need something like the following in your Avro project pom.xml file. The first plugin will compile Avro *.avpr files, while the second plugin will run Paranamer (necessary for Avro to introspect the generated rpc code):
+To use the plugin you'll need something like the following in your Avro project pom.xml file. The first plugin will compile Avro *.avpr files, while the second plugin will run Paranamer (necessary for Avro to introspect the generated rpc code):
 
 See "avro-rpc-quickstart":http://github.com/phunt/avro-rpc-quickstart for example use.
 
