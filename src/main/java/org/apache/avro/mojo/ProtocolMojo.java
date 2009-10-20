@@ -19,18 +19,14 @@
 package org.apache.avro.mojo;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.specific.SpecificCompiler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.apache.tools.ant.BuildException;
 
 /**
  * Compile an Avro protocol schema file.
@@ -85,7 +81,7 @@ public class ProtocolMojo extends AbstractMojo {
         }
 
         FileSet fs = new FileSet();
-        fs.setDirectory( sourceDirectory.getAbsolutePath() );
+        fs.setDirectory(sourceDirectory.getAbsolutePath());
         fs.setFollowSymlinks( false );
 
         for (String include : includes) {
@@ -98,57 +94,16 @@ public class ProtocolMojo extends AbstractMojo {
         String[] includedFiles = fileSetManager.getIncludedFiles(fs);
 
         for (String filename : includedFiles) {
-            compile(new File(sourceDirectory, filename));
+            try {
+                SpecificCompiler.compileProtocol(
+                        new File(sourceDirectory, filename),
+                        outputDirectory);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error compiling protocol file "
+                        + filename + " to " + outputDirectory, e);
+            }
         }
 
         project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
-    }
-
-    // what follows is mostly from Avro's ProtocolTask
-    // much of this can go away in 1.2.0 of Avro as some refactoring will
-    // allow reuse (currently tied to AntTask and cannot be reused)
-
-    protected SpecificCompiler doCompile(File file) throws IOException {
-        return SpecificCompiler.compileProtocol(file);
-    }
-
-    static String cap(String name) {
-        return (name.substring(0,1).toUpperCase()
-                + name.substring(1,name.length()));
-    }
-
-    private void compile(File file) {
-        try {
-            SpecificCompiler compiler = doCompile(file);
-            String namespace = compiler.getNamespace();
-            String text = compiler.getCode();
-            String name = file.getName();
-            name = name.substring(0, name.indexOf('.')) + ".java";
-            name = cap(name);
-            File outputFile;
-            if (namespace == null || namespace.length() == 0) {
-                outputFile = new File(outputDirectory, name);
-            } else {
-                File packageDir = new File(outputDirectory,
-                        namespace.replace('.', File.separatorChar));
-                if (!packageDir.exists()) {
-                    if (!packageDir.mkdirs()) {
-                        throw new BuildException("Unable to create "
-                                + packageDir);
-                    }
-                }
-                outputFile = new File(packageDir, name);
-            }
-            Writer out = new FileWriter(outputFile);
-            try {
-                out.write(text);
-            } finally {
-                out.close();
-            }
-        } catch (AvroRuntimeException e) {
-            throw new BuildException(e);
-        } catch (IOException e) {
-            throw new BuildException(e);
-        }
     }
 }
