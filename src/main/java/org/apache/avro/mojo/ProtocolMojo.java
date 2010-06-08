@@ -18,15 +18,15 @@
 
 package org.apache.avro.mojo;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.avro.specific.SpecificCompiler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Compile an Avro protocol schema file.
@@ -52,7 +52,7 @@ public class ProtocolMojo extends AbstractMojo {
      *
      * @parameter
      */
-    private String[] includes = new String[] { "**/*.avpr" };
+    private String[] includes = new String[]{"**/*.avpr", "**/*.avsc"};
 
     /**
      * A set of Ant-like exclusion patterns used to prevent certain
@@ -72,6 +72,11 @@ public class ProtocolMojo extends AbstractMojo {
      */
     private MavenProject project;
 
+    /**
+     * @parameter default-value="false"
+     */
+    private boolean schemas;
+
     private FileSetManager fileSetManager = new FileSetManager();
 
     public void execute() throws MojoExecutionException {
@@ -82,7 +87,7 @@ public class ProtocolMojo extends AbstractMojo {
 
         FileSet fs = new FileSet();
         fs.setDirectory(sourceDirectory.getAbsolutePath());
-        fs.setFollowSymlinks( false );
+        fs.setFollowSymlinks(false);
 
         for (String include : includes) {
             fs.addInclude(include);
@@ -95,9 +100,15 @@ public class ProtocolMojo extends AbstractMojo {
 
         for (String filename : includedFiles) {
             try {
-                SpecificCompiler.compileProtocol(
-                        new File(sourceDirectory, filename),
-                        outputDirectory);
+                if (schemas || filename.endsWith(".avsc")) {
+                    SpecificCompiler.compileSchema(
+                            new File(sourceDirectory, filename),
+                            outputDirectory);
+                } else {
+                    SpecificCompiler.compileProtocol(
+                            new File(sourceDirectory, filename),
+                            outputDirectory);
+                }
             } catch (IOException e) {
                 throw new MojoExecutionException("Error compiling protocol file "
                         + filename + " to " + outputDirectory, e);
