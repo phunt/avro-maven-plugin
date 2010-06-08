@@ -29,9 +29,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Compile an Avro protocol schema file.
+ * Compile an Avro protocol or schema file.
  *
- * @goal protocol
+ * @goal compile
  * @phase generate-sources
  */
 public class ProtocolMojo extends AbstractMojo {
@@ -73,9 +73,14 @@ public class ProtocolMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * @parameter default-value="false"
+     * @parameter default-value=".avpr"
      */
-    private boolean schemas;
+    private String protocolExtension;
+
+    /**
+     * @parameter default-value=".avsc"
+     */
+    private String schemaExtension;
 
     private FileSetManager fileSetManager = new FileSetManager();
 
@@ -100,14 +105,16 @@ public class ProtocolMojo extends AbstractMojo {
 
         for (String filename : includedFiles) {
             try {
-                if (schemas || filename.endsWith(".avsc")) {
+                if (filename.endsWith(schemaExtension)) {
                     SpecificCompiler.compileSchema(
                             new File(sourceDirectory, filename),
                             outputDirectory);
-                } else {
+                } else if (filename.endsWith(protocolExtension)) {
                     SpecificCompiler.compileProtocol(
                             new File(sourceDirectory, filename),
                             outputDirectory);
+                } else {
+                    throw new MojoExecutionException("Do not know whether " + filename + " is a protocol or a schema");
                 }
             } catch (IOException e) {
                 throw new MojoExecutionException("Error compiling protocol file "
