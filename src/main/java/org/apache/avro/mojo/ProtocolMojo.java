@@ -82,6 +82,11 @@ public class ProtocolMojo extends AbstractMojo {
      */
     private String schemaExtension;
 
+    /**
+     * @parameter default-value=".avrodl"
+     */
+    private String avrodlExtension;
+
     private FileSetManager fileSetManager = new FileSetManager();
 
     public void execute() throws MojoExecutionException {
@@ -113,6 +118,8 @@ public class ProtocolMojo extends AbstractMojo {
                     SpecificCompiler.compileProtocol(
                             new File(sourceDirectory, filename),
                             outputDirectory);
+                } else if (filename.endsWith(avrodlExtension)) {
+                    
                 } else {
                     throw new MojoExecutionException("Do not know whether " + filename + " is a protocol or a schema");
                 }
