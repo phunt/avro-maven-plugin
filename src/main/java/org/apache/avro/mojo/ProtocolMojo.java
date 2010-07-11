@@ -91,8 +91,11 @@ public class ProtocolMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         if (!sourceDirectory.isDirectory()) {
-            throw new MojoExecutionException(sourceDirectory
-                    + "is not a directory");
+          // Some prefer to throw an exception if there's not avro directory, but
+          // I think it's fine not to have a directory since in a multi-module project
+          // some subprojects would have a src/main/avro and some won't
+          return;
+          // not:   throw new MojoExecutionException(sourceDirectory + " is not a directory");
         }
 
         FileSet fs = new FileSet();
