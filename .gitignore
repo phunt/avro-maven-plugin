@@ -4,3 +4,7 @@
 .DS_Store
 target
 *~
+.classpath
+.gitignore
+.project
+.settings
