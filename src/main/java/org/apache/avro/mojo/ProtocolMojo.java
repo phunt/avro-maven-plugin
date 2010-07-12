@@ -18,15 +18,22 @@
 
 package org.apache.avro.mojo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+
+import org.apache.avro.Protocol;
+import org.apache.avro.genavro.GenAvro;
+import org.apache.avro.genavro.ParseException;
 import org.apache.avro.specific.SpecificCompiler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Compile an Avro protocol or schema file.
@@ -35,24 +42,31 @@ import java.io.IOException;
  * @phase generate-sources
  */
 public class ProtocolMojo extends AbstractMojo {
+
+    public static final String IDL_EXTENSION = ".genavro";
+    public static final String PROTOCOL_EXTENSION = ".avpr";
+    public static final String SCHEMA_EXTENSION = ".avsc";
+
     /**
      * @parameter expression="${sourceDirectory}" default-value="${basedir}/src/main/avro"
      */
-    private File sourceDirectory;
+    protected File sourceDirectory;
 
     /**
      * @parameter expression="${outputDirectory}" default-value="${project.build.directory}/generated-sources/avro"
      */
-    private File outputDirectory;
+    protected File outputDirectory;
 
     /**
      * A set of Ant-like inclusion patterns used to select files from
      * the source directory for processing. By default, the pattern
-     * <code>**&#47;*.avro</code> is used to select grammar files.
+     * <code>**\/*.avpr,**\/*.avsc,**\/*.genavro</code> is used to select grammar files.
      *
      * @parameter
      */
-    private String[] includes = new String[]{"**/*.avpr", "**/*.avsc"};
+    private final String[] includes = new String[] { "**/*" + PROTOCOL_EXTENSION,
+                                                     "**/*" + SCHEMA_EXTENSION,
+                                                     "**/*" + IDL_EXTENSION };
 
     /**
      * A set of Ant-like exclusion patterns used to prevent certain
@@ -61,7 +75,7 @@ public class ProtocolMojo extends AbstractMojo {
      *
      * @parameter
      */
-    private String[] excludes = new String[0];
+    private final String[] excludes = new String[0];
 
     /**
      * The current Maven project.
@@ -70,32 +84,32 @@ public class ProtocolMojo extends AbstractMojo {
      * @readonly
      * @required
      */
-    private MavenProject project;
+    protected MavenProject project;
 
     /**
      * @parameter default-value=".avpr"
      */
-    private String protocolExtension;
+    protected String protocolExtension;
 
     /**
      * @parameter default-value=".avsc"
      */
-    private String schemaExtension;
+    protected String schemaExtension;
 
     /**
      * @parameter default-value=".avrodl"
      */
     private String avrodlExtension;
 
-    private FileSetManager fileSetManager = new FileSetManager();
+    private final FileSetManager fileSetManager = new FileSetManager();
 
     public void execute() throws MojoExecutionException {
         if (!sourceDirectory.isDirectory()) {
-          // Some prefer to throw an exception if there's not avro directory, but
-          // I think it's fine not to have a directory since in a multi-module project
-          // some subprojects would have a src/main/avro and some won't
-          return;
-          // not:   throw new MojoExecutionException(sourceDirectory + " is not a directory");
+            this.getLog().warn("Missing source directory " + sourceDirectory);
+            // Some prefer to throw an exception if there's not avro directory, but
+            // I think it's fine not to have a directory since in a multi-module project
+            // some subprojects would have a src/main/avro and some won't
+            return;
         }
 
         FileSet fs = new FileSet();
@@ -111,27 +125,97 @@ public class ProtocolMojo extends AbstractMojo {
 
         String[] includedFiles = fileSetManager.getIncludedFiles(fs);
 
+        // Directory for genavro tmp files, only create if needed
+        File tmpOutDir = null;
+
         for (String filename : includedFiles) {
             try {
+                File srcFile = new File(sourceDirectory, filename);
+
+                // First check if GenAvro needs to be run
+                if (srcFile.getAbsolutePath().endsWith(IDL_EXTENSION)) {
+                    if (tmpOutDir == null) {
+                        tmpOutDir = File.createTempFile("genavro", null);
+                        tmpOutDir.delete();
+                        tmpOutDir.mkdir();
+                    }
+
+                    File outFile = new File(tmpOutDir,
+                            getNameWithoutExtension(filename) +
+                            PROTOCOL_EXTENSION);
+                    InputStream parseIn = new FileInputStream(srcFile);
+                    PrintStream parseOut = new PrintStream(
+                            new FileOutputStream(outFile));
+                    GenAvro parser = new GenAvro(parseIn);
+                    Protocol p = parser.CompilationUnit();
+                    parseOut.print(p.toString(true));
+                    parseOut.flush();
+                    parseOut.close();
+                    parseIn.close();
+                    srcFile = outFile;
+                    filename = srcFile.getName();
+                }
+
                 if (filename.endsWith(schemaExtension)) {
                     SpecificCompiler.compileSchema(
-                            new File(sourceDirectory, filename),
-                            outputDirectory);
+                            srcFile, outputDirectory);
                 } else if (filename.endsWith(protocolExtension)) {
                     SpecificCompiler.compileProtocol(
-                            new File(sourceDirectory, filename),
-                            outputDirectory);
+                            srcFile, outputDirectory);
                 } else if (filename.endsWith(avrodlExtension)) {
                     
                 } else {
-                    throw new MojoExecutionException("Do not know whether " + filename + " is a protocol or a schema");
+                    throw new MojoExecutionException(
+                            "Do not know file type of " + filename);
                 }
             } catch (IOException e) {
-                throw new MojoExecutionException("Error compiling protocol file "
-                        + filename + " to " + outputDirectory, e);
+                throw new MojoExecutionException(
+                        "Error compiling file " + filename
+                        + " to " + outputDirectory, e);
+            } catch (ParseException e) {
+                throw new MojoExecutionException(
+                        "Error parsing genavro file " + filename + " to "
+                        + outputDirectory, e);
             }
         }
 
         project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
+
+        // cleanup
+        if (tmpOutDir != null) {
+            deleteDir(tmpOutDir);
+        }
     }
+
+    /**
+     * Gets a file name from the string without the file extension.
+     * For example: x.genavro => x.
+     */
+    private String getNameWithoutExtension(String filename) {
+      if (filename == null) {
+        return null;
+      }
+      int dot = filename.lastIndexOf('.');
+      return filename.substring(0, dot);
+    }
+
+    /**
+     * Deletes all files and subdirectories under dir. If a deletion fails,
+     * the method stops attempting to delete and returns false.
+     **/
+    public static boolean deleteDir(File dir) {
+        if (dir.exists() && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+
+        // The directory is now empty so delete it
+        return dir.delete();
+    }
+
 }
