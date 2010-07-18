@@ -10,9 +10,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ProtocolMojoTest {
+public class AvroMojoTest {
 
-    private final ProtocolMojo mojo = new ProtocolMojo();
+    private final AvroMojo mojo = new AvroMojo();
 
     private final String tmp = System.getProperty("java.io.tmpdir");
 
@@ -21,8 +21,8 @@ public class ProtocolMojoTest {
         cleanup();
         mojo.sourceDirectory = new File("src/test/resources/input");
         mojo.outputDirectory = new File(tmp);
-        mojo.schemaExtension = ProtocolMojo.SCHEMA_EXTENSION;
-        mojo.protocolExtension = ProtocolMojo.PROTOCOL_EXTENSION;
+        mojo.schemaExtension = AvroMojo.SCHEMA_EXTENSION;
+        mojo.protocolExtension = AvroMojo.PROTOCOL_EXTENSION;
         mojo.project = new MavenProject();
     }
 
@@ -39,8 +39,8 @@ public class ProtocolMojoTest {
     }
 
     private void cleanup() {
-        ProtocolMojo.deleteDir(new File(tmp, "mynamespace"));
-        ProtocolMojo.deleteDir(new File(tmp, "mynamespaceavpr"));
+        AvroMojo.deleteDir(new File(tmp, "mynamespace"));
+        AvroMojo.deleteDir(new File(tmp, "mynamespaceavpr"));
     }
 
     private void testExecuteIdl() throws MojoExecutionException {

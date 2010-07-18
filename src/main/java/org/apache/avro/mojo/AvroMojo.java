@@ -41,7 +41,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
  * @goal compile
  * @phase generate-sources
  */
-public class ProtocolMojo extends AbstractMojo {
+public class AvroMojo extends AbstractMojo {
 
     public static final String IDL_EXTENSION = ".genavro";
     public static final String PROTOCOL_EXTENSION = ".avpr";
