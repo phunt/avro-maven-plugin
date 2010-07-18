@@ -4,7 +4,12 @@ h1. Maven 2 Plugin for processing Avro files
 
 h2. Summary
 
-"This is a Maven 2 plugin":http://github.com/phunt/avro-maven-plugin for processing "Avro protocol and schema files":http://hadoop.apache.org/avro/. Currently only protocol files are supported.
+"This is a Maven 2 plugin":http://github.com/phunt/avro-maven-plugin for processing "Avro protocol, schema":http://hadoop.apache.org/avro/, and "genavro":http://avro.apache.org/docs/current/genavro.html files.
+
+h3. Contributors
+
+* "Sam Pullara":http://github.com/spullara
+* "Ran Tavory":http://github.com/rantav
 
 h3. What's Apache Avro?
 
@@ -25,7 +30,7 @@ h2. Usage
 
 Type "mvn install" to install the plugin into your local maven repository.
 
-To use the plugin you'll need something like the following in your Avro project pom.xml file. The first plugin will compile Avro *.avpr files, while the second plugin will run Paranamer (necessary for Avro to introspect the generated rpc code):
+To use the plugin you'll need something like the following in your Avro project pom.xml file. The first plugin will compile Avro *.avpr, *.avsc, and *.genavro files, while the second plugin will run Paranamer (necessary for Avro to introspect the generated rpc code):
 
 See "avro-rpc-quickstart":http://github.com/phunt/avro-rpc-quickstart for example use.
 
@@ -38,7 +43,7 @@ See "avro-rpc-quickstart":http://github.com/phunt/avro-rpc-quickstart for exampl
           <execution>
             <phase>generate-sources</phase>
             <goals>
-              <goal>protocol</goal>
+              <goal>compile</goal>
             </goals>
           </execution>
         </executions>
