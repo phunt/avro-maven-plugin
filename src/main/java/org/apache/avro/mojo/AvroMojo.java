@@ -114,7 +114,7 @@ public class AvroMojo extends AbstractMojo {
 
         FileSet fs = new FileSet();
         fs.setDirectory(sourceDirectory.getAbsolutePath());
-        fs.setFollowSymlinks(false);
+        fs.setFollowSymlinks(true);
 
         for (String include : includes) {
             fs.addInclude(include);
@@ -125,10 +125,13 @@ public class AvroMojo extends AbstractMojo {
 
         String[] includedFiles = fileSetManager.getIncludedFiles(fs);
 
+        this.getLog().info("Found " + includedFiles.length + " files");
+
         // Directory for genavro tmp files, only create if needed
         File tmpOutDir = null;
 
         for (String filename : includedFiles) {
+            this.getLog().info("Processing " + filename);
             try {
                 File srcFile = new File(sourceDirectory, filename);
 
