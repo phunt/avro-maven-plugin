@@ -24,7 +24,7 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.avro</groupId>
   <artifactId>avro-maven-plugin</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.5.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Avro Maven Plugin</name>
@@ -72,7 +72,7 @@ under the License.
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.5.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
