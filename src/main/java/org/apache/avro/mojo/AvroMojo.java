@@ -26,8 +26,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 
 import org.apache.avro.Protocol;
-import org.apache.avro.genavro.GenAvro;
-import org.apache.avro.genavro.ParseException;
+import org.apache.avro.idl.Idl;
+import org.apache.avro.idl.ParseException;
 import org.apache.avro.specific.SpecificCompiler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -149,7 +149,7 @@ public class AvroMojo extends AbstractMojo {
                     InputStream parseIn = new FileInputStream(srcFile);
                     PrintStream parseOut = new PrintStream(
                             new FileOutputStream(outFile));
-                    GenAvro parser = new GenAvro(parseIn);
+                    Idl parser = new Idl(parseIn);
                     Protocol p = parser.CompilationUnit();
                     parseOut.print(p.toString(true));
                     parseOut.flush();
