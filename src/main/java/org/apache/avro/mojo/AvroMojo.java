@@ -26,8 +26,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 
 import org.apache.avro.Protocol;
-import org.apache.avro.genavro.GenAvro;
-import org.apache.avro.genavro.ParseException;
+import org.apache.avro.idl.Idl;
+import org.apache.avro.idl.ParseException;
 import org.apache.avro.specific.SpecificCompiler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,7 +43,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
  */
 public class AvroMojo extends AbstractMojo {
 
-    public static final String IDL_EXTENSION = ".genavro";
+    public static final String IDL_EXTENSION = ".avdl";
     public static final String PROTOCOL_EXTENSION = ".avpr";
     public static final String SCHEMA_EXTENSION = ".avsc";
 
@@ -138,7 +138,7 @@ public class AvroMojo extends AbstractMojo {
                 // First check if GenAvro needs to be run
                 if (srcFile.getAbsolutePath().endsWith(IDL_EXTENSION)) {
                     if (tmpOutDir == null) {
-                        tmpOutDir = File.createTempFile("genavro", null);
+                        tmpOutDir = File.createTempFile("avdl", null);
                         tmpOutDir.delete();
                         tmpOutDir.mkdir();
                     }
@@ -149,7 +149,7 @@ public class AvroMojo extends AbstractMojo {
                     InputStream parseIn = new FileInputStream(srcFile);
                     PrintStream parseOut = new PrintStream(
                             new FileOutputStream(outFile));
-                    GenAvro parser = new GenAvro(parseIn);
+                    Idl parser = new Idl(parseIn);
                     Protocol p = parser.CompilationUnit();
                     parseOut.print(p.toString(true));
                     parseOut.flush();
